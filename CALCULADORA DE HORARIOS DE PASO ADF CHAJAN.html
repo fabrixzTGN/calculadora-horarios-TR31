@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Calculadora Horarios Scrapper</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f5f5; }
+    .app { background:#fff; max-width:1000px; margin:40px auto; padding:20px; border-radius:10px; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { border:1px solid #ddd; padding:8px; text-align:left; }
+    th { background:#eee; }
+    input { width:100%; padding:6px; }
+  </style>
+</head>
+
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+function toMinutes(time) {
+  const [h,m] = time.split(":").map(Number);
+  return h*60 + m;
+}
+
+function toTime(mins) {
+  mins = ((mins % 1440) + 1440) % 1440;
+  const h = Math.floor(mins/60);
+  const m = Math.round(mins%60);
+  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0");
+}
+
+function App() {
+  const [launch, setLaunch] = React.useState("07:00");
+  const [rows, setRows] = React.useState([
+    {loc:"GLUCOVIL", dist:2, vel:14.5},
+    {loc:"VALLE CONLARA", dist:4, vel:14.5},
+    {loc:"VLV 110", dist:6, vel:14.5},
+    {loc:"VLV JUAN JORBA", dist:32, vel:14.5},
+    {loc:"JUSTO DARACT", dist:40, vel:14.5},
+    {loc:"PC CHAJAN", dist:45, vel:14.5},
+    {loc:"VLV CHAJAN", dist:66, vel:14.5},
+    {loc:"TSR", dist:97, vel:14.5},
+  ]);
+
+  const updateVel = (i, v) => {
+    const r=[...rows];
+    r[i].vel = v;
+    setRows(r);
+  };
+
+  return (
+    <div className="app">
+      <h2>Calculadora de horario de paso TGN CHAJAN TR31 AFD</h2>
+
+      <label>
+        <b>Hora de lanzamiento:</b>
+        <input type="time" value={launch} onChange={e=>setLaunch(e.target.value)} />
+      </label>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Locación</th>
+            <th>Distancia del lanzamiento (km)</th>
+            <th>Velocidad (km/h)</th>
+            <th>Hora estimada</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r,i)=>{
+            const mins = toMinutes(launch)+(r.dist/r.vel)*60;
+            return (
+              <tr key={i}>
+                {/* LOCACIÓN FIJA */}
+                <td><b>{r.loc}</b></td>
+
+                {/* DISTANCIA FIJA */}
+                <td><b>{r.dist}</b></td>
+
+                {/* VELOCIDAD EDITABLE */}
+                <td>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={r.vel}
+                    onChange={e=>updateVel(i, e.target.value)}
+                  />
+                </td>
+
+                <td><b>{toTime(mins)}</b></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <p><i>Fórmula: Hora = Lanzamiento + (Distancia / Velocidad)</i></p>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
